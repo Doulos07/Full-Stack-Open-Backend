@@ -39,7 +39,7 @@ const generateId = () => {
 };
 
 app.get("/", (request, response) => {
-  response.end("<H1>Hello Word</H!>");
+  response.end("<h1>Hello Word</h1>");
 });
 
 app.get("/api/persons", (req, res) => {
@@ -93,7 +93,7 @@ app.get("/info", (req, res) => {
     <p>${time}</p>`);
 });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
   console.log(`server running port ${PORT}`);
