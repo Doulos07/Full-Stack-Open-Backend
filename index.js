@@ -79,16 +79,25 @@ app.post("/api/persons", (req, res) => {
   res.json(newPerson);
 });
 
-app.delete("/api/persons/:id", (req, res) => {
+app.put("/api/persons/:id", (req, res) => {
   const id = Number(req.params.id);
-  const deletePerson = persons.find((person) => person.id === id);
-  if (!deletePerson) {
+  const body = req.body;
+
+  const person = persons.find((p) => p.id === id);
+
+  if (!person) {
     return res.status(404).json({ error: "person not found" });
   }
 
-  persons = persons.filter((person) => person.id !== id);
+  const updatedPerson = {
+    ...person,
+    name: body.name,
+    number: body.number,
+  };
 
-  res.json(deletePerson);
+  persons = persons.map((p) => (p.id === id ? updatedPerson : p));
+
+  res.json(updatedPerson);
 });
 
 app.delete("/api/persons/:id", (req, res) => {
