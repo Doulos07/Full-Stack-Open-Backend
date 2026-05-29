@@ -91,6 +91,18 @@ app.delete("/api/persons/:id", (req, res) => {
   res.json(deletePerson);
 });
 
+app.delete("/api/persons/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const deletePerson = persons.find((person) => person.id === id);
+  if (!deletePerson) {
+    return res.status(404).json({ error: "person not found" });
+  }
+
+  persons = persons.filter((person) => person.id !== id);
+
+  res.json(deletePerson);
+});
+
 app.get("/info", (req, res) => {
   const total = persons.length;
   const time = new Date();
