@@ -81,9 +81,14 @@ app.post("/api/persons", (req, res) => {
 
 app.delete("/api/persons/:id", (req, res) => {
   const id = Number(req.params.id);
+  const deletePerson = persons.find((person) => person.id === id);
+  if (!deletePerson) {
+    return res.status(404).json({ error: "person not found" });
+  }
+
   persons = persons.filter((person) => person.id !== id);
 
-  res.status(204).end();
+  res.json(deletePerson);
 });
 
 app.get("/info", (req, res) => {
