@@ -1,6 +1,9 @@
+require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
+const Person = require("./models/person");
+const { now } = require("mongoose");
 const app = express();
 
 app.use(express.json());
@@ -12,50 +15,24 @@ app.use(
   morgan(":method :url :status :res[content-length] - :response-time ms :body"),
 );
 
-let persons = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: 3,
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: 4,
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
-];
-
-const generateId = () => {
-  return Math.floor(Math.random() * 10000);
-};
-
 app.get("/", (request, response) => {
   response.end("<h1>Hello Word</h1>");
 });
 
 app.get("/api/persons", (req, res) => {
-  res.json(persons);
+  Person.find({}).then((persons) => {
+    res.json(persons);
+  });
 });
 
 app.get("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find((person) => person.id === id);
-
-  if (person) {
-    res.json(person);
-  } else {
-    res.status(404).end();
-  }
+  Person.findById(req.params.id)
+    .then((person) => {
+      res.json(person);
+    })
+    .catch((error) => {
+      res.status(404).send();
+    });
 });
 
 app.post("/api/persons", (req, res) => {
@@ -113,14 +90,15 @@ app.delete("/api/persons/:id", (req, res) => {
 });
 
 app.get("/info", (req, res) => {
-  const total = persons.length;
-  const time = new Date();
-  res.send(`
-    <p>Phonebook has info for ${total} people </p>
+  const time = new Date().toISOString();
+  Person.find({}).then((result) => {
+    res.send(`
+    <p>Phonebook has info for ${result.length} people </p>
     <p>${time}</p>`);
+  });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
   console.log(`server running port ${PORT}`);
