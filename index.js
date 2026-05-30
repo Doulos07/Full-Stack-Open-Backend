@@ -42,39 +42,42 @@ app.post("/api/persons", (req, res) => {
     return res.status(400).json({ error: "name or number missing" });
   }
 
+  /*
   if (persons.some((p) => p.name === body.name)) {
     return res.status(404).json({ error: "name must be unique" });
   }
+  */
 
   const newPerson = {
-    id: generateId(),
     name: body.name,
     number: body.number,
   };
 
-  persons = persons.concat(newPerson);
-  res.json(newPerson);
+  const person = new Person(newPerson);
+
+  person.save().then((savedPerson) => {
+    res.json(savedPerson);
+  });
 });
 
 app.put("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
+  const id = req.params.id;
   const body = req.body;
 
-  const person = persons.find((p) => p.id === id);
-
-  if (!person) {
-    return res.status(404).json({ error: "person not found" });
-  }
-
-  const updatedPerson = {
-    ...person,
-    name: body.name,
-    number: body.number,
-  };
-
-  persons = persons.map((p) => (p.id === id ? updatedPerson : p));
-
-  res.json(updatedPerson);
+  Person.findById(id)
+    .then((person) => {
+      const updatePerson = new Person({
+        ...person,
+        name: body.name,
+        number: body.number,
+      });
+      updatePerson.save().then((savedPerson) => {
+        res.json(savedPerson);
+      });
+    })
+    .catch((error) => {
+      return res.status(404).json({ error: "person not found" });
+    });
 });
 
 app.delete("/api/persons/:id", (req, res) => {
