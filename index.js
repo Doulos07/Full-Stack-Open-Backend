@@ -18,13 +18,15 @@ app.get("/", (request, response) => {
   response.end("<h1>Hello Word</h1>");
 });
 
-app.get("/api/persons", (req, res) => {
-  Person.find({}).then((persons) => {
-    res.json(persons);
-  });
+app.get("/api/persons", (req, res, next) => {
+  Person.find({})
+    .then((persons) => {
+      res.json(persons);
+    })
+    .catch((error) => next(error));
 });
 
-app.get("/api/persons/:id", (req, res) => {
+app.get("/api/persons/:id", (req, res, next) => {
   Person.findById(req.params.id)
     .then((person) => {
       if (person) {
@@ -36,7 +38,7 @@ app.get("/api/persons/:id", (req, res) => {
     .catch((error) => next(error));
 });
 
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", (req, res, next) => {
   const body = req.body;
 
   if (!body.name || !body.number) {
@@ -50,9 +52,12 @@ app.post("/api/persons", (req, res) => {
 
   const person = new Person(newPerson);
 
-  person.save().then((savedPerson) => {
-    res.json(savedPerson);
-  });
+  person
+    .save()
+    .then((savedPerson) => {
+      res.json(savedPerson);
+    })
+    .catch((error) => next(error));
 });
 
 app.put("/api/persons/:id", (req, res, next) => {
@@ -63,10 +68,16 @@ app.put("/api/persons/:id", (req, res, next) => {
     number: body.number,
   };
 
-  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+  Person.findByIdAndUpdate(req.params.id, person, {
+    new: true,
+    runValidators: true,
+    context: "query",
+  })
     .then((updatePerson) => {
       if (!updatePerson) {
-        return res.status(404).end();
+        return res.status(404).json({
+          error: "person not found",
+        });
       }
       res.json(updatePerson);
     })
@@ -84,13 +95,15 @@ app.delete("/api/persons/:id", (req, res, next) => {
     .catch((error) => next(error));
 });
 
-app.get("/info", (req, res) => {
+app.get("/info", (req, res, next) => {
   const time = new Date().toISOString();
-  Person.find({}).then((result) => {
-    res.send(`
+  Person.find({})
+    .then((result) => {
+      res.send(`
     <p>Phonebook has info for ${result.length} people </p>
     <p>${time}</p>`);
-  });
+    })
+    .catch((error) => next(error));
 });
 
 // MIDDLEWARE
@@ -109,7 +122,13 @@ const errorHandler = (error, req, res, next) => {
     });
   }
 
-  res.status(500).json({
+  if (error.name === "ValidationError") {
+    return res.status(400).json({
+      error: error.message,
+    });
+  }
+
+  return res.status(500).json({
     error: "internal server error",
   });
 };

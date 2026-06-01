@@ -1,7 +1,7 @@
-PUT http://localhost:3001/api/persons/6a1a1ccaeef0f2bc6ea40f4c
+PUT http://localhost:3001/api/persons/6a1d852e6664d0162b4f53f2
 Content-Type: application/json
 
 {
-    "name": "richard herrera",
+    "name": "r",
     "number": "221-458-8974"
 }
